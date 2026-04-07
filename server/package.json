@@ -1,0 +1,23 @@
+{
+  "name": "import-cost-server",
+  "version": "0.0.1",
+  "description": "LSP server that displays import bundle sizes via inlay hints",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "esbuild src/server.ts --bundle --platform=node --target=node18 --outfile=dist/server.js --external:esbuild",
+    "dev": "esbuild src/server.ts --bundle --platform=node --target=node18 --outfile=dist/server.js --external:esbuild --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "esbuild": "^0.25.0",
+    "typescript": "^5.8.0",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "vitest": "^3.1.0"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,17 @@
+id = "import-cost"
+name = "Import Cost"
+description = "Display inline the bundle size of imported JS/TS packages. Requires inlay hints enabled in settings."
+version = "0.0.1"
+schema_version = 1
+authors = ["Gonzalo de Campes <gdecampes@gmail.com>"]
+repository = "https://github.com/gcampes/zed-import-cost"
+
+[language_servers.import-cost]
+name = "Import Cost"
+languages = ["TypeScript", "TSX", "JavaScript", "JSX"]
+
+[language_servers.import-cost.language_ids]
+"TypeScript" = "typescript"
+"TSX" = "typescriptreact"
+"JavaScript" = "javascript"
+"JSX" = "javascriptreact"
