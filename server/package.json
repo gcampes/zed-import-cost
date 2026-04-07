@@ -1,8 +1,17 @@
 {
   "name": "import-cost-server",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "LSP server that displays import bundle sizes via inlay hints",
   "main": "dist/server.js",
+  "files": [
+    "dist/server.js",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gcampes/zed-import-cost",
+    "directory": "server"
+  },
   "scripts": {
     "build": "esbuild src/server.ts --bundle --platform=node --target=node18 --outfile=dist/server.js --external:esbuild",
     "dev": "esbuild src/server.ts --bundle --platform=node --target=node18 --outfile=dist/server.js --external:esbuild --watch",

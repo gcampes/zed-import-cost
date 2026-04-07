@@ -1,10 +1,16 @@
 # Import Cost for Zed
 
-Display the bundle size of imported packages inline in the editor.
-
-![Import Cost](https://citw.dev/_next/image?url=%2Fposts%2Fimport-cost%2F1quov3TFpgG2ur7myCLGtsA.gif&w=1080&q=75)
+Display the bundle size of imported packages inline in the editor, powered by [esbuild](https://esbuild.github.io/).
 
 Inspired by [wix/import-cost](https://github.com/wix/import-cost) for VS Code.
+
+```
+import { debounce } from 'lodash';       42.1kB (gzip: 14.2kB)
+import React from 'react';               6.3kB (gzip: 2.8kB)
+import axios from 'axios';               13.5kB (gzip: 5.1kB)
+import type { Foo } from 'bar';          // skipped (type-only)
+import { readFile } from 'node:fs';      // skipped (builtin)
+```
 
 ## Features
 
