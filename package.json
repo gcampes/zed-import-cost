@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "npm run build --prefix server",
+    "test": "npm run test --prefix server",
+    "dev": "npm run dev --prefix server",
+    "release:patch": "npm run release:patch --prefix server",
+    "release:minor": "npm run release:minor --prefix server",
+    "release:major": "npm run release:major --prefix server"
+  }
+}

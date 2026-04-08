@@ -3,7 +3,7 @@ name = "Import Cost"
 description = "Display inline the bundle size of imported JS/TS packages. Requires inlay hints enabled in settings."
 version = "0.0.2"
 schema_version = 1
-authors = ["Gonzalo de Campes <gdecampes@gmail.com>"]
+authors = ["Gabriel de Campes <gabrieldecampes@gmail.com>"]
 repository = "https://github.com/gcampes/zed-import-cost"
 
 [language_servers.import-cost]

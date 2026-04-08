@@ -1,6 +1,6 @@
 {
   "name": "import-cost-server",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "LSP server that displays import bundle sizes via inlay hints",
   "main": "dist/server.js",
   "files": [
@@ -16,7 +16,11 @@
     "build": "esbuild src/server.ts --bundle --platform=node --target=node18 --outfile=dist/server.js --external:esbuild",
     "dev": "esbuild src/server.ts --bundle --platform=node --target=node18 --outfile=dist/server.js --external:esbuild --watch",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build && npm test",
+    "release:patch": "npm version patch && npm publish",
+    "release:minor": "npm version minor && npm publish",
+    "release:major": "npm version major && npm publish"
   },
   "dependencies": {
     "esbuild": "^0.25.0",
