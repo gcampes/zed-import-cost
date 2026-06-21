@@ -13,6 +13,10 @@ export interface ParsedImport {
  * Skips type-only imports and relative imports.
  */
 export function parseImports(sourceCode: string, fileName = "file.tsx"): ParsedImport[] {
+  if (fileName.endsWith(".svelte")) {
+    sourceCode = preprocessSvelte(sourceCode);
+  }
+
   const sourceFile = ts.createSourceFile(
     fileName,
     sourceCode,
@@ -157,4 +161,28 @@ function shouldSkipModule(moduleSpecifier: string): boolean {
   // Skip node builtins
   if (NODE_BUILTINS.has(moduleSpecifier)) return true;
   return false;
+}
+
+function preprocessSvelte(sourceCode: string): string {
+  const chars = sourceCode.split("");
+  for (let j = 0; j < chars.length; j++) {
+    if (chars[j] !== "\n" && chars[j] !== "\r") {
+      chars[j] = " ";
+    }
+  }
+
+  const scriptRegex = /<script\b[^>]*>([\s\S]*?)<\/script>/g;
+  let match;
+  while ((match = scriptRegex.exec(sourceCode)) !== null) {
+    const openTagRegex = /<script\b[^>]*>/;
+    const openTagMatch = match[0].match(openTagRegex);
+    const scriptTagLen = openTagMatch ? openTagMatch[0].length : 8;
+
+    const contentStartIdx = match.index + scriptTagLen;
+    const content = match[1];
+    for (let j = 0; j < content.length; j++) {
+      chars[contentStartIdx + j] = content[j];
+    }
+  }
+  return chars.join("");
 }
