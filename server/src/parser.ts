@@ -1,4 +1,5 @@
 import ts from "typescript";
+import { parse } from "svelte/compiler";
 
 export interface ParsedImport {
   moduleSpecifier: string;
@@ -163,26 +164,40 @@ function shouldSkipModule(moduleSpecifier: string): boolean {
   return false;
 }
 
+/**
+ * Turn a `.svelte` file into a TS-parseable source by keeping only the
+ * `<script>` (instance) and `<script module>` (or legacy `context="module"`)
+ * contents, with everything else blanked out.
+ *
+ * We blank the markup/style rather than dropping it so that every byte keeps
+ * its original offset. That way line/character positions reported for imports
+ * still match the real `.svelte` file and inlay hints land in the right spot.
+ *
+ * Uses Svelte's own parser (rather than a regex) so that scripts are located
+ * correctly even when tag attributes contain `>` (e.g. `generics="T extends
+ * Foo<Bar>">`) or scripts are commented out.
+ */
 function preprocessSvelte(sourceCode: string): string {
-  const chars = sourceCode.split("");
-  for (let j = 0; j < chars.length; j++) {
-    if (chars[j] !== "\n" && chars[j] !== "\r") {
-      chars[j] = " ";
+  let ast: ReturnType<typeof parse>;
+  try {
+    ast = parse(sourceCode, { modern: true });
+  } catch {
+    // Incomplete component (e.g. mid-edit): no imports we can trust.
+    return "";
+  }
+
+  // Blank every non-newline character, preserving line/column offsets.
+  const chars = Array.from(sourceCode, (ch) =>
+    ch === "\n" || ch === "\r" ? ch : " ",
+  );
+
+  for (const block of [ast.module, ast.instance]) {
+    const content = block?.content;
+    if (!content) continue;
+    for (let i = content.start; i < content.end; i++) {
+      chars[i] = sourceCode[i];
     }
   }
 
-  const scriptRegex = /<script\b[^>]*>([\s\S]*?)<\/script>/g;
-  let match;
-  while ((match = scriptRegex.exec(sourceCode)) !== null) {
-    const openTagRegex = /<script\b[^>]*>/;
-    const openTagMatch = match[0].match(openTagRegex);
-    const scriptTagLen = openTagMatch ? openTagMatch[0].length : 8;
-
-    const contentStartIdx = match.index + scriptTagLen;
-    const content = match[1];
-    for (let j = 0; j < content.length; j++) {
-      chars[contentStartIdx + j] = content[j];
-    }
-  }
   return chars.join("");
 }

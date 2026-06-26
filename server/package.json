@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "esbuild": "^0.25.0",
+    "svelte": "^5.56.3",
     "typescript": "^5.8.0",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12"
