@@ -1,4 +1,5 @@
 import ts from "typescript";
+import { parse } from "svelte/compiler";
 
 export interface ParsedImport {
   moduleSpecifier: string;
@@ -13,6 +14,10 @@ export interface ParsedImport {
  * Skips type-only imports and relative imports.
  */
 export function parseImports(sourceCode: string, fileName = "file.tsx"): ParsedImport[] {
+  if (fileName.endsWith(".svelte")) {
+    sourceCode = preprocessSvelte(sourceCode);
+  }
+
   const sourceFile = ts.createSourceFile(
     fileName,
     sourceCode,
@@ -157,4 +162,42 @@ function shouldSkipModule(moduleSpecifier: string): boolean {
   // Skip node builtins
   if (NODE_BUILTINS.has(moduleSpecifier)) return true;
   return false;
+}
+
+/**
+ * Turn a `.svelte` file into a TS-parseable source by keeping only the
+ * `<script>` (instance) and `<script module>` (or legacy `context="module"`)
+ * contents, with everything else blanked out.
+ *
+ * We blank the markup/style rather than dropping it so that every byte keeps
+ * its original offset. That way line/character positions reported for imports
+ * still match the real `.svelte` file and inlay hints land in the right spot.
+ *
+ * Uses Svelte's own parser (rather than a regex) so that scripts are located
+ * correctly even when tag attributes contain `>` (e.g. `generics="T extends
+ * Foo<Bar>">`) or scripts are commented out.
+ */
+function preprocessSvelte(sourceCode: string): string {
+  let ast: ReturnType<typeof parse>;
+  try {
+    ast = parse(sourceCode, { modern: true });
+  } catch {
+    // Incomplete component (e.g. mid-edit): no imports we can trust.
+    return "";
+  }
+
+  // Blank every non-newline character, preserving line/column offsets.
+  const chars = Array.from(sourceCode, (ch) =>
+    ch === "\n" || ch === "\r" ? ch : " ",
+  );
+
+  for (const block of [ast.module, ast.instance]) {
+    const content = block?.content;
+    if (!content) continue;
+    for (let i = content.start; i < content.end; i++) {
+      chars[i] = sourceCode[i];
+    }
+  }
+
+  return chars.join("");
 }

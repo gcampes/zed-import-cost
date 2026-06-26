@@ -168,4 +168,134 @@ describe("parseImports", () => {
       expect(result.map((r) => r.line)).toEqual([0, 1, 3]);
     });
   });
+
+  describe("Svelte files", () => {
+    it("parses imports from a basic <script> block", () => {
+      const code = [
+        `<script>`,
+        `  import { debounce } from 'lodash';`,
+        `</script>`,
+        ``,
+        `<button>click</button>`,
+      ].join("\n");
+      const result = parseImports(code, "Component.svelte");
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        moduleSpecifier: "lodash",
+        importType: "named",
+        specifiers: ["debounce"],
+      });
+    });
+
+    it("parses imports from a TypeScript <script lang=\"ts\">", () => {
+      const code = [
+        `<script lang="ts">`,
+        `  import axios from 'axios';`,
+        `  let count: number = 0;`,
+        `</script>`,
+      ].join("\n");
+      const result = parseImports(code, "Component.svelte");
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        moduleSpecifier: "axios",
+        importType: "default",
+        specifiers: ["axios"],
+      });
+    });
+
+    it("parses imports from both module and instance scripts (Svelte 5)", () => {
+      const code = [
+        `<script module>`,
+        `  import { writable } from 'svelte/store';`,
+        `</script>`,
+        `<script>`,
+        `  import React from 'react';`,
+        `</script>`,
+      ].join("\n");
+      const result = parseImports(code, "Component.svelte");
+      expect(result.map((r) => r.moduleSpecifier).sort()).toEqual([
+        "react",
+        "svelte/store",
+      ]);
+    });
+
+    it("parses imports from a legacy <script context=\"module\">", () => {
+      const code = [
+        `<script context="module">`,
+        `  import { writable } from 'svelte/store';`,
+        `</script>`,
+        `<script>`,
+        `  import axios from 'axios';`,
+        `</script>`,
+      ].join("\n");
+      const result = parseImports(code, "Component.svelte");
+      expect(result.map((r) => r.moduleSpecifier).sort()).toEqual([
+        "axios",
+        "svelte/store",
+      ]);
+    });
+
+    it("returns no imports when there is no script block", () => {
+      const code = `<h1>Hello</h1>\n<p>no scripts here</p>`;
+      const result = parseImports(code, "Component.svelte");
+      expect(result).toHaveLength(0);
+    });
+
+    it("ignores import-like text in markup", () => {
+      const code = [
+        `<script>`,
+        `  import axios from 'axios';`,
+        `</script>`,
+        ``,
+        `<p>import lodash from 'lodash';</p>`,
+      ].join("\n");
+      const result = parseImports(code, "Component.svelte");
+      expect(result).toHaveLength(1);
+      expect(result[0].moduleSpecifier).toBe("axios");
+    });
+
+    it("preserves original line numbers when script is not at the top", () => {
+      const code = [
+        `<div>`,
+        `  <span>header markup</span>`,
+        `</div>`,
+        `<script>`,
+        `  import React from 'react';`,
+        `</script>`,
+      ].join("\n");
+      const result = parseImports(code, "Component.svelte");
+      expect(result).toHaveLength(1);
+      // The import sits on line index 4 in the original file.
+      expect(result[0].line).toBe(4);
+    });
+
+    it("still skips relative and type-only imports inside Svelte scripts", () => {
+      const code = [
+        `<script lang="ts">`,
+        `  import { local } from './local';`,
+        `  import type { Foo } from 'bar';`,
+        `  import axios from 'axios';`,
+        `</script>`,
+      ].join("\n");
+      const result = parseImports(code, "Component.svelte");
+      expect(result).toHaveLength(1);
+      expect(result[0].moduleSpecifier).toBe("axios");
+    });
+
+    it("extracts the script even when an attribute value contains '>'", () => {
+      const code = [
+        `<script lang="ts" generics="T extends Record<string, unknown>">`,
+        `  import axios from 'axios';`,
+        `</script>`,
+      ].join("\n");
+      const result = parseImports(code, "Component.svelte");
+      expect(result).toHaveLength(1);
+      expect(result[0].moduleSpecifier).toBe("axios");
+    });
+
+    it("does not throw on a malformed/incomplete component", () => {
+      const code = `<script>\n  import axios from 'axios'`;
+      expect(() => parseImports(code, "Component.svelte")).not.toThrow();
+    });
+  });
 });

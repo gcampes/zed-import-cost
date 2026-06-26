@@ -33,7 +33,7 @@ After installing the extension, you need to **enable inlay hints** in your Zed s
 }
 ```
 
-That's it. Open any `.js`, `.ts`, `.jsx`, or `.tsx` file with third-party imports and you should see bundle sizes appear inline.
+That's it. Open any `.js`, `.ts`, `.jsx`, `.tsx` or `.svelte` file with third-party imports and you should see bundle sizes appear inline.
 
 ## How it works
 
