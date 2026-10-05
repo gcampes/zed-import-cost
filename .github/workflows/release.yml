@@ -1,0 +1,27 @@
+name: Release Zed Extension
+
+# Pushing a tag like `v0.0.4` opens a PR against the fork of
+# zed-industries/extensions that bumps this extension to the version
+# declared in `extension.toml` at the tagged commit.
+#
+# Note: the tag is only the trigger. The action reads the actual version
+# from `extension.toml`, so the tag number should match the extension
+# version you are releasing (e.g. tag `v0.0.4` when extension.toml is 0.0.4).
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    name: Release Zed Extension
+    runs-on: ubuntu-latest
+    steps:
+      - uses: huacnlee/zed-extension-action@v2
+        with:
+          extension-name: import-cost-lsp
+          push-to: gcampes/extensions
+        env:
+          # Personal access token with "repo" and "workflow" scopes.
+          # Stored as a repository secret named COMMITTER_TOKEN.
+          COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
